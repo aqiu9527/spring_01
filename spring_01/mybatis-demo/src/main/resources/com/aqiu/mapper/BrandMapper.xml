@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<!-- namespace 名称空间-->
+
+<mapper namespace="com.aqiu.mapper.BrandMapper">
+
+    <!--
+        id:唯一标识
+        type:映射的类型，支持别名
+        -->
+    <resultMap id="brandResultMap" type="brand" >
+        <!--
+            id：主键字段的映射
+                column:表的列明
+                property:实体类的属性名
+            result：一般字段的映射
+                column:表的列明
+                property:实体类的属性名
+                -->
+        <result column="brand_name" property="brandName"/>
+        <result column="company_name" property="companyName"/>
+    </resultMap>
+
+
+    <!--  useGeneratedKeys="true" keyProperty="id" 用于获取刚添加数据的主键，可以用实体类.get()获取到  -->
+    <insert id="add" useGeneratedKeys="true" keyProperty="id" >
+        insert into tb_brand (brand_name, company_name, ordered, description, status)
+        values (#{brandName},#{companyName},#{ordered},#{description},#{status});
+    </insert>
+
+
+    <update id="update">
+        update tb_brand
+        <set>
+            <if test="brandName != null and brandName != ''">
+                brand_name = #{brandName},
+            </if>
+            <if test="companyName != null and companyName != ''">
+                company_name = #{companyName},
+            </if>
+            <if test="ordered != null">
+                ordered = #{ordered},
+            </if>
+            <if test="description != null and description != ''">
+                description = #{description},
+            </if>
+            <if test="status != null ">
+                status = #{status}
+            </if>
+        </set>
+        <where>
+            id = #{id}
+        </where>
+    </update>
+
+
+    <delete id="deleteById">
+        delete from tb_brand
+        where id = #{id};
+
+    <!--
+         mybatis会将数组参数，封装成一个Map集合。
+            *默认： array = 数组
+            *使用@Param注解改变Map集合的默认Key的名称
+    -->
+    </delete>
+
+    <delete id="deleteByIds">
+        delete from tb_brand
+        where id
+        in
+        <foreach collection="ids" item="id" separator="," open="(" close=")">
+            #{id}
+        </foreach>
+        ;
+    </delete>
+
+
+    <select id="selectAll" resultMap="brandResultMap">
+        select *
+        from tb_brand;
+    </select>
+
+
+    <!--
+        参数占位符
+            #{}：将其替换为?,防止sql注入
+
+            ${}: 拼接sql,会存在sql注入
+        特殊字符：
+            1.转义字符：
+            2.CDATA区：
+                输入CD
+                    <![CDATA[
+                        <
+                    ]]>
+    -->
+    <select id="selectById" resultMap="brandResultMap">
+        SELECT *
+        from tb_brand
+        where id = #{id}
+    </select>
+
+
+    <!--
+        条件查询-多条件查询
+    -->
+    <select id="selectByCondition" resultMap="brandResultMap">
+        select *
+        from tb_brand
+        <!-- where 1 = 1 -->
+        <where>
+            <if test="status != null" >
+                and status = #{status}
+            </if>
+            <if test="companyName != null and companyName != '' " >
+                and company_name like #{companyName}
+            </if>
+            <if test="brandName != null and brandName != '' " >
+                and brand_name like #{brandName}
+            </if>
+        </where>
+    </select>
+
+
+    <select id="selectByConditionSingle" resultMap="brandResultMap">
+        select *
+        from tb_brand
+        <!-- where 1 = 1 -->
+        <where>
+            <choose>
+                <when test="status != null" >
+                    and status = #{status}
+                </when>
+                <when test="companyName != null and companyName != '' " >
+                    and company_name like #{companyName}
+                </when>
+                <when test="brandName != null and brandName != '' " >
+                    and brand_name like #{brandName}
+                </when>
+<!--                不使用<where>标签时可以使用  -->
+<!--                <otherwise>-->
+<!--                    1 = 1-->
+<!--                </otherwise>-->
+            </choose>
+        </where>
+    </select>
+
+
+</mapper>
